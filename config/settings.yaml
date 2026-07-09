@@ -1,0 +1,42 @@
+theme: le_savais_tu
+
+llm:
+  model: qwen2.5:7b-instruct
+  host: http://localhost:11434
+  temperature: 0.9
+
+video:
+  target_duration_seconds: 45
+  resolution: [1080, 1920]
+
+tts:
+  voice_model: assets/voices/fr_FR-siwis-medium.onnx
+  voice_config: assets/voices/fr_FR-siwis-medium.onnx.json
+
+subtitles:
+  whisper_model: tiny
+
+visuals:
+  provider: pexels
+  orientation: portrait
+
+youtube:
+  privacy_status: public
+  category_id: "27" # Education
+  client_secret_file: "Client Secret Le Savais-tu.json"
+  token_file: token.json
+
+schedule:
+  videos_per_day: 4
+
+paths:
+  output_dir: output
+  state_db: state/history.sqlite3
+  logs_dir: logs
+
+alerts:
+  webhook_url_env: ALERT_WEBHOOK_URL
+
+retry:
+  max_attempts: 3
+  backoff_seconds: [30, 120, 300]

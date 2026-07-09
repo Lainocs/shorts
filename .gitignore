@@ -1,0 +1,21 @@
+.env
+Client Secret*.json
+venv/
+__pycache__/
+*.pyc
+
+output/*
+!output/.gitkeep
+
+logs/*
+!logs/.gitkeep
+
+state/*.sqlite3
+
+token.json
+
+assets/voices/*.onnx
+assets/voices/*.onnx.json
+
+*.wav
+*.mp4
