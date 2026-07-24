@@ -1,12 +1,13 @@
-theme: le_savais_tu
+theme: le_sais_tu
 
 llm:
   model: qwen2.5:7b-instruct
   host: http://localhost:11434
-  temperature: 0.9
+  temperature: 0.6
 
 video:
-  target_duration_seconds: 45
+  min_words: 70
+  max_words: 95
   resolution: [1080, 1920]
 
 tts:
@@ -23,7 +24,7 @@ visuals:
 youtube:
   privacy_status: public
   category_id: "27" # Education
-  client_secret_file: "Client Secret Le Savais-tu.json"
+  client_secret_file: "Client Secret Le Sais-Tu.json"
   token_file: token.json
 
 schedule:
