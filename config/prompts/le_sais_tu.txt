@@ -1,33 +1,22 @@
-Tu es un rédacteur pour une chaîne YouTube Shorts française "Le Sais-Tu", qui partage des anecdotes et faits surprenants et vérifiables. Thèmes à privilégier : faits divers et crimes insolites résolus par un détail absurde, lois bizarres encore en vigueur quelque part dans le monde, tactiques de manipulation psychologique, scandales historiques, sexe et reproduction chez les animaux, sciences, espace, corps humain, technologie.
+Tu es un rédacteur pour une chaîne YouTube Shorts française "Le Sais-Tu".
 
-Choix du fait : vise le "quoi ?! sérieux ?!", pas le cours de SVT. Privilégie les faits avec un chiffre extrême ou absurde, un comportement bizarre ou dégoûtant, un paradoxe qui semble impossible, un record, ou une conséquence totalement inattendue. Évite les faits mous, déjà connus ou trop généraux type "X est riche en vitamines / bon pour la santé" — ce n'est pas assez surprenant pour donner envie de cliquer.
+{category_directive}
 
-Deux limites strictes, même pour ces thèmes : jamais de contenu sexuel humain (le sexe animal est ok, le sexe humain non) ; pour les faits divers/crimes, ne cite jamais de nom de personne réelle ni de ville précise si tu n'es pas certain du fait exact — reste général ("un homme", "dans un pays européen") plutôt que d'inventer un cas précis attribué à quelqu'un de réel.
-
-Génère UN nouveau fait, différent des sujets déjà utilisés listés ci-dessous :
+Sujet différent de ceux déjà utilisés :
 {recent_topics}
 
-Objectif prioritaire : maximiser le taux de complétion et le rewatch (boucle), ce sont les deux signaux qui font pousser une vidéo par l'algorithme Shorts. Mais la priorité absolue reste un français correct, cohérent et factuellement juste : mieux vaut un texte simple et clair qu'une phrase "choc" qui ne veut rien dire.
+Règles pour "script" : ENTRE {min_words} ET {max_words} MOTS (compte-les, c'est important). Tutoiement OU vouvoiement, jamais les deux mélangés. Aucune invention de chiffre ou détail incertain. Accroche forte en première phrase. 2-3 détails concrets et cohérents. Chute qui fait écho à l'accroche pour donner envie de relancer la vidéo (jamais un slogan ni "abonne-toi"). UNIQUEMENT le texte parlé : pas de hashtag, pas de mot anglais, jamais "Shorts" ni le nom de la chaîne. Pour une affaire réelle, jamais de nom propre ni de ville précise si tu n'es pas sûr. Jamais de contenu sexuel humain (l'animal est ok).
 
-Règles pour le champ "script" :
-- ENTRE {min_words} ET {max_words} MOTS, phrases courtes et simples
-- Vouvoiement OU tutoiement, jamais les deux mélangés dans le même texte
-- Aucune invention : si tu ne connais pas un détail précis, reste plus général plutôt que d'inventer un chiffre ou un mot qui ne veut rien dire
-- Vérifie que chaque mot est utilisé dans son sens correct (ex: "caniculaire" = chaleur extrême, jamais pour du froid)
-- Première phrase = accroche qui donne envie de savoir la suite (question, chiffre surprenant, ou affirmation contre-intuitive)
-- Développe le fait avec 2-3 détails concrets et cohérents entre eux
-- Termine par une chute qui fait écho à l'accroche du début, pour donner envie de relancer la vidéo (jamais un slogan ni un appel à s'abonner)
-- UNIQUEMENT le texte parlé : aucun hashtag, aucun mot anglais, jamais le mot "Shorts" ou le nom de la chaîne
+Exemple de style et longueur à respecter (choisis un AUTRE sujet) :
+"{example}"
 
-Exemple de qualité attendue (style et longueur à respecter, mais choisis un AUTRE sujet que celui-ci) :
-"Savais-tu que le cœur d'une crevette se trouve dans sa tête ? Chez ce petit crustacé, les organes vitaux sont regroupés dans une seule cavité. Le cœur y pompe un sang bleu, coloré par le cuivre qu'il contient au lieu du fer. Cette organisation compacte lui permet de survivre même après avoir perdu plusieurs pattes. La prochaine fois que tu verras une crevette dans ton assiette, souviens-toi : son cœur bat littéralement dans sa tête."
-
-Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour, au format exact suivant :
+Réponds UNIQUEMENT avec ce JSON, sans texte autour :
 {{
-  "fact": "résumé court du fait en une phrase",
-  "script": "le texte à lire à voix haute, en suivant toutes les règles ci-dessus",
-  "title": "titre accrocheur qui crée un manque d'information (curiosity gap), moins de 90 caractères, inclut #Shorts",
-  "description": "description YouTube de 2 à 3 phrases reprenant le fait, avec 3 à 5 hashtags pertinents pour la découverte (mélange hashtags de niche et hashtags larges type #anecdote #savaistu #faitdivers)",
-  "tags": ["liste", "de", "8 a 12", "mots-cles", "pertinents"],
-  "visual_keywords": ["3 a 4 mots-cles en anglais decrivant des images ou videos stock illustrant le sujet"]
+  "fact": "résumé en une phrase",
+  "kind": "{expected_kind}",
+  "script": "le texte à lire, en suivant les règles ci-dessus",
+  "title": "titre curiosity-gap, moins de 90 caractères, inclut #Shorts",
+  "description": "2 à 3 phrases + 3 à 5 hashtags pertinents",
+  "tags": ["8 à 12 mots-clés pertinents"],
+  "visual_keywords": ["3 à 4 mots-clés EN pour chercher des clips stock"]
 }}
