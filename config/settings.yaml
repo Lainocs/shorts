@@ -1,8 +1,7 @@
 theme: le_sais_tu
 
 llm:
-  model: qwen2.5:7b-instruct
-  host: http://localhost:11434
+  model: openai/gpt-oss-120b
   temperature: 0.6
 
 video:

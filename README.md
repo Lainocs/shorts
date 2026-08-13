@@ -1,14 +1,15 @@
 # Le Sais-Tu — pipeline de Shorts YouTube automatisé
 
 Pipeline qui génère et publie automatiquement des Shorts YouTube (anecdotes/faits)
-en local/gratuit : Ollama (script), Piper (voix), faster-whisper (sous-titres
-karaoke), Pexels (visuels), ffmpeg (montage), API YouTube Data v3 (upload).
+100% gratuit : Groq (script, gpt-oss-120b), Piper (voix, local), faster-whisper
+(sous-titres karaoke, local), Pexels (visuels), ffmpeg (montage), API YouTube
+Data v3 (upload).
 
 ## Setup initial (sur le VPS)
 
 ```bash
 ./scripts/setup_vps.sh
-cp .env.example .env   # puis renseigner PEXELS_API_KEY (obtenu sur pexels.com/api, gratuit)
+cp .env.example .env   # puis renseigner PEXELS_API_KEY (pexels.com/api) et GROQ_API_KEY (console.groq.com), les deux gratuits
 ```
 
 Auth YouTube (une seule fois) :

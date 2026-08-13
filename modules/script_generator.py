@@ -1,5 +1,6 @@
 import difflib
 import logging
+import os
 import random
 import re
 from pathlib import Path
@@ -82,7 +83,7 @@ def _script_is_valid(script_text: str, min_words: int) -> bool:
     return len(script_text.split()) >= min_words
 
 
-def _expand_script(script_text: str, min_words: int, model: str, host: str) -> str:
+def _expand_script(script_text: str, min_words: int, model: str, api_key: str) -> str:
     prompt = (
         "Voici un texte pour une vidéo, en français :\n\n"
         f'"{script_text}"\n\n'
@@ -92,7 +93,7 @@ def _expand_script(script_text: str, min_words: int, model: str, host: str) -> s
         f"atteindre au moins {min_words} mots. Réponds UNIQUEMENT avec le texte final complet, "
         "sans JSON, sans guillemets, sans commentaire, sans hashtag."
     )
-    expanded = generate_text(prompt, model=model, host=host, temperature=0.6, timeout=600)
+    expanded = generate_text(prompt, model=model, api_key=api_key, temperature=0.6)
     return _sanitize_script(expanded)
 
 
@@ -118,13 +119,14 @@ def generate_script(config: dict, db_path: str, max_attempts: int = 5) -> dict:
         expected_kind=expected_kind,
     )
 
+    api_key = os.environ["GROQ_API_KEY"]
+
     for attempt in range(1, max_attempts + 1):
         data = generate_json(
             prompt,
             model=llm_cfg["model"],
-            host=llm_cfg["host"],
-            temperature=llm_cfg.get("temperature", 0.9),
-            timeout=600,
+            api_key=api_key,
+            temperature=llm_cfg.get("temperature", 0.6),
         )
 
         missing = REQUIRED_KEYS - data.keys()
@@ -145,7 +147,7 @@ def generate_script(config: dict, db_path: str, max_attempts: int = 5) -> dict:
                 "Script trop court (%d mots, tentative %d/%d), tentative d'expansion...",
                 word_count, attempt, max_attempts,
             )
-            expanded = _expand_script(data["script"], video_cfg["min_words"], llm_cfg["model"], llm_cfg["host"])
+            expanded = _expand_script(data["script"], video_cfg["min_words"], llm_cfg["model"], api_key)
             if _script_is_valid(expanded, video_cfg["min_words"]):
                 data["script"] = expanded
             else:
