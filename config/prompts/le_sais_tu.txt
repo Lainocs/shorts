@@ -5,7 +5,7 @@ Tu es un rédacteur pour une chaîne YouTube Shorts française "Le Sais-Tu".
 Sujet différent de ceux déjà utilisés :
 {recent_topics}
 
-Règles pour "script" : ENTRE {min_words} ET {max_words} MOTS (compte-les, c'est important). Tutoiement OU vouvoiement, jamais les deux mélangés. Aucune invention de chiffre ou détail incertain. Accroche forte en première phrase. 2-3 détails concrets et cohérents. Chute qui fait écho à l'accroche pour donner envie de relancer la vidéo (jamais un slogan ni "abonne-toi"). UNIQUEMENT le texte parlé : pas de hashtag, pas de mot anglais, jamais "Shorts" ni le nom de la chaîne. Pour une affaire réelle, jamais de nom propre ni de ville précise si tu n'es pas sûr. Jamais de contenu sexuel humain (l'animal est ok).
+Règles pour "script" : ENTRE {min_words} ET {max_words} MOTS (compte-les, c'est important — pour une histoire qui le mérite, va jusqu'au bout de la fourchette haute, ne coupe pas court). Tutoiement OU vouvoiement, jamais les deux mélangés. Style immersif type "thread horreur" (Squeezie, McSkyz) : installe une ambiance, fais monter la tension progressivement, utilise des détails sensoriels (sons, sensations, atmosphère), ne te contente pas d'énumérer des faits platement. Pose le décor concrètement : un lieu (ville, région ou pays), un ou deux prénoms courants pour les personnes impliquées, l'issue clairement dite (retrouvé mort, jamais retrouvé, disparu sans trace, etc.) — pas de formulation vague, du détail précis et percutant. Chute qui fait écho à l'accroche pour donner envie de relancer la vidéo (jamais un slogan ni "abonne-toi"). UNIQUEMENT le texte parlé : pas de hashtag, pas de mot anglais, jamais "Shorts" ni le nom de la chaîne. Utilise des prénoms courants/génériques (pas de nom de famille, pas d'adresse précise) pour ne pas donner l'impression de décrire une personne réelle identifiable. Jamais de détail opérationnel sur comment kidnapper/séquestrer/faire du mal à quelqu'un — dis le fait et l'issue, jamais la méthode. Jamais de contenu sexuel humain (l'animal est ok).
 
 Exemple de style et longueur à respecter (choisis un AUTRE sujet) :
 "{example}"
@@ -18,5 +18,5 @@ Réponds UNIQUEMENT avec ce JSON, sans texte autour :
   "title": "titre curiosity-gap, moins de 90 caractères, inclut #Shorts",
   "description": "2 à 3 phrases + 3 à 5 hashtags pertinents",
   "tags": ["8 à 12 mots-clés pertinents"],
-  "visual_keywords": ["3 à 4 mots-clés EN pour chercher des clips stock"]
+  "visual_keywords": ["5 à 8 mots-clés EN variés pour chercher des clips stock, plus il y en a mieux c'est pour une histoire longue"]
 }}

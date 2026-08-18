@@ -5,8 +5,9 @@ llm:
   temperature: 0.6
 
 video:
-  min_words: 55
-  max_words: 130
+  min_words: 70
+  max_words: 450
+  max_clip_segment_seconds: 8
   resolution: [1080, 1920]
 
 tts:

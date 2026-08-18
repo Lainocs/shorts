@@ -17,22 +17,27 @@ SIMILARITY_THRESHOLD = 0.75
 CATEGORIES = [
     (
         "policier_resolu", 25, "verifie",
-        "Le sujet DOIT être une affaire policière ou un crime RÉSOLU (raconte comment ça a abouti).",
-        "Savais-tu qu'un cambrioleur a été arrêté à cause d'une pizza ? Après un vol dans une "
-        "bijouterie, il s'est caché dans un appartement et a commandé une livraison à son propre "
-        "nom. Les policiers ont remonté sa trace grâce au ticket de commande. Il a été interpellé "
-        "moins d'une heure après avoir reçu sa pizza. Ce genre d'erreur absurde arrive plus souvent "
-        "qu'on ne le pense dans les vraies enquêtes.",
+        "Le sujet DOIT être une affaire policière ou un crime RÉSOLU (raconte comment ça a abouti). "
+        "Donne un lieu, un prénom courant pour la personne concernée, et l'issue précise.",
+        "Savais-tu qu'un cambrioleur s'est fait arrêter à Lyon à cause d'une pizza ? Après un vol "
+        "dans une bijouterie, Marc s'est caché dans un appartement du centre-ville et a commandé une "
+        "livraison à son propre nom. Les policiers ont remonté sa trace grâce au ticket de commande. "
+        "Il a été interpellé moins d'une heure après avoir reçu sa pizza, encore en train de la "
+        "manger. Ce genre d'erreur absurde arrive plus souvent qu'on ne le pense dans les vraies "
+        "enquêtes.",
     ),
     (
         "policier_non_resolu", 25, "non_confirme",
         "Le sujet DOIT être une affaire ou disparition NON RÉSOLUE, un vrai mystère sans réponse. "
-        'Signale-le explicitement dans le script ("on raconte que", "le mystère reste entier").',
-        "On raconte qu'un randonneur aurait disparu en pleine forêt sans laisser aucune trace, alors "
-        "que son sac et ses affaires sont restés intacts au bord du sentier. Les chiens pisteurs ont "
-        "perdu sa trace à quelques mètres seulement du campement. Aucun signe de lutte, aucun témoin, "
-        "aucune explication logique n'a jamais été trouvée. Le dossier reste ouvert aujourd'hui "
-        "encore. Certains habitants du coin évitent toujours ce sentier à la tombée de la nuit.",
+        "Donne un lieu, un prénom courant, et précise l'issue connue (jamais retrouvé, retrouvé "
+        'mort sans explication, etc.). Signale l\'incertitude explicitement ("on raconte que", '
+        '"le mystère reste entier").',
+        "On raconte que Julien, un randonneur de 24 ans, aurait disparu dans les Vosges sans laisser "
+        "aucune trace, alors que son sac et ses affaires sont restés intacts au bord du sentier. Les "
+        "chiens pisteurs ont perdu sa trace à quelques mètres seulement du campement. Aucun signe de "
+        "lutte, aucun témoin, aucune explication logique n'a jamais été trouvée. Le dossier reste "
+        "ouvert aujourd'hui encore. Certains habitants du coin évitent toujours ce sentier à la "
+        "tombée de la nuit.",
     ),
     (
         "horreur_fiction", 20, "fiction",
