@@ -28,7 +28,8 @@ youtube:
   token_file: token.json
 
 schedule:
-  videos_per_day: 4
+  # Les heures réelles du cron sont définies dans scripts/install_cron.sh
+  videos_per_day: 6
 
 paths:
   output_dir: output
