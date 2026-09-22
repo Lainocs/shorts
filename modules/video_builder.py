@@ -24,7 +24,7 @@ def build_video(clip_paths: list[str], audio_path: str, subtitles_path: str, out
     concat_inputs = []
     for i in range(len(clip_paths)):
         filter_parts.append(
-            f"[{i}:v]trim=duration={per_clip_duration:.3f},setpts=PTS-STARTPTS,"
+            f"[{i}:v]trim=duration={per_clip_duration:.3f},setpts=PTS-STARTPTS,fps=30,"
             f"scale={width}:{height}:force_original_aspect_ratio=increase,"
             f"crop={width}:{height}[v{i}]"
         )
@@ -42,7 +42,7 @@ def build_video(clip_paths: list[str], audio_path: str, subtitles_path: str, out
         "-filter_complex", filter_complex,
         "-map", "[outv]",
         "-map", f"{len(clip_paths)}:a",
-        "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+        "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-r", "30",
         "-c:a", "aac", "-b:a", "128k",
         "-shortest",
         out_path,

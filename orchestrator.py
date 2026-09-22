@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+import shutil
 import sys
 import uuid
 from datetime import date
@@ -102,6 +103,14 @@ def run(config: dict, dry_run: bool) -> None:
         )
         state.add_video(db_path, topic_id, video_id, "published")
         logger.info("[%s] Publiée: https://youtube.com/watch?v=%s", run_id, video_id)
+        alert(
+            webhook_url,
+            f"[shorts:{config['theme']}] Nouvelle vidéo publiée : {script['title']}\n"
+            f"Fait : {script['fact']}\n"
+            f"https://youtube.com/watch?v={video_id}",
+        )
+
+        shutil.rmtree(work_dir, ignore_errors=True)
 
     except Exception as exc:
         logger.exception("[%s] Échec du pipeline", run_id)

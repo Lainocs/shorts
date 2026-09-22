@@ -1,4 +1,4 @@
-# Le Savais-tu — pipeline de Shorts YouTube automatisé
+# Le Sais-Tu — pipeline de Shorts YouTube automatisé
 
 Pipeline qui génère et publie automatiquement des Shorts YouTube (anecdotes/faits)
 en local/gratuit : Ollama (script), Piper (voix), faster-whisper (sous-titres
@@ -45,7 +45,7 @@ Les logs sont dans `logs/YYYY-MM-DD.log`, l'historique des sujets/vidéos dans
 1. Copier tout le dossier `shorts/` (ou faire un nouveau checkout du repo)
 2. Créer `config/prompts/<nouveau_theme>.txt` avec les instructions du nouveau thème
 3. Mettre `theme: <nouveau_theme>` dans `config/settings.yaml`
-4. Remplacer `Client Secret Le Savais-tu.json` par le secret OAuth du nouveau channel,
+4. Remplacer `Client Secret Le Sais-Tu.json` par le secret OAuth du nouveau channel,
    mettre à jour `youtube.client_secret_file` dans `config/settings.yaml`
 5. Relancer `scripts/setup_youtube_auth.py` pour ce nouveau channel
 

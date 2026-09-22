@@ -16,7 +16,7 @@ from pathlib import Path
 from google_auth_oauthlib.flow import InstalledAppFlow
 
 SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
-CLIENT_SECRET_FILE = "Client Secret Le Savais-tu.json"
+CLIENT_SECRET_FILE = "Client Secret Le Sais-Tu.json"
 TOKEN_FILE = "token.json"
 
 
