@@ -66,13 +66,18 @@ def run(config: dict, dry_run: bool) -> None:
             audio_path, subtitles_path, whisper_model=config["subtitles"]["whisper_model"]
         )
 
-        logger.info("[%s] Récupération des visuels...", run_id)
+        max_segment_seconds = config["video"].get("max_clip_segment_seconds", 8)
+        audio_duration = video_builder.probe_duration(audio_path)
+        num_segments = video_builder.compute_num_segments(audio_duration, max_segment_seconds)
+
+        logger.info("[%s] Récupération des visuels (%d clips visés)...", run_id, num_segments)
         api_key = os.environ["PEXELS_API_KEY"]
         clip_paths = visuals.fetch_clips(
             script["visual_keywords"],
             api_key,
             str(work_dir / "clips"),
             orientation=config["visuals"]["orientation"],
+            min_clips=num_segments,
         )
 
         logger.info("[%s] Assemblage de la vidéo...", run_id)
@@ -80,6 +85,7 @@ def run(config: dict, dry_run: bool) -> None:
         video_builder.build_video(
             clip_paths, audio_path, subtitles_path, video_path,
             resolution=tuple(config["video"]["resolution"]),
+            max_segment_seconds=max_segment_seconds,
         )
 
         if dry_run:
