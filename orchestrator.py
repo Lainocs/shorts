@@ -120,7 +120,19 @@ def run(config: dict, dry_run: bool) -> None:
 
     except Exception as exc:
         logger.exception("[%s] Échec du pipeline", run_id)
-        alert(webhook_url, f"[shorts:{config['theme']}] Run {run_id} a échoué: {exc}")
+        if "invalid_grant" in str(exc):
+            host = os.environ.get("REAUTH_PUBLIC_HOST")
+            secret = os.environ.get("REAUTH_SECRET")
+            if host and secret:
+                alert(
+                    webhook_url,
+                    f"[shorts:{config['theme']}] Token YouTube expiré, reclique ici pour le renouveler :\n"
+                    f"https://{host}/start?key={secret}",
+                )
+            else:
+                alert(webhook_url, f"[shorts:{config['theme']}] Token YouTube expiré (serveur de réauth non configuré)")
+        else:
+            alert(webhook_url, f"[shorts:{config['theme']}] Run {run_id} a échoué: {exc}")
         raise
 
 

@@ -1,0 +1,14 @@
+[Unit]
+Description=Serveur de reauth YouTube (clic depuis Discord)
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/shorts
+ExecStart=/home/ubuntu/shorts/venv/bin/python scripts/youtube_auth_server.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
