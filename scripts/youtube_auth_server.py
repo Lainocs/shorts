@@ -26,7 +26,7 @@ PUBLIC_HOST = os.environ["REAUTH_PUBLIC_HOST"]
 REDIRECT_URI = f"https://{PUBLIC_HOST}/oauth2callback"
 SECRET_KEY = os.environ["REAUTH_SECRET"]
 
-_pending_flow = {}
+_pending_flows = {}  # state -> flow (plusieurs clics /start possibles)
 
 
 def _make_flow() -> Flow:
@@ -52,18 +52,23 @@ class Handler(BaseHTTPRequestHandler):
                 self._html(403, "<h2>Lien invalide.</h2>")
                 return
             flow = _make_flow()
-            auth_url, _ = flow.authorization_url(access_type="offline", prompt="consent")
-            _pending_flow["flow"] = flow
+            auth_url, state = flow.authorization_url(access_type="offline", prompt="consent")
+            _pending_flows[state] = flow
             self.send_response(302)
             self.send_header("Location", auth_url)
             self.end_headers()
 
         elif parsed.path == "/oauth2callback":
-            flow = _pending_flow.get("flow")
+            flow = _pending_flows.pop(params.get("state", [None])[0], None)
             if flow is None:
-                self._html(400, "<h2>Session expirée, relance depuis Discord.</h2>")
+                self._html(400, "<h2>Session expirée, relance le lien depuis Discord.</h2>")
                 return
-            flow.fetch_token(authorization_response=f"https://{PUBLIC_HOST}{self.path}")
+            try:
+                flow.fetch_token(authorization_response=f"https://{PUBLIC_HOST}{self.path}")
+            except Exception as exc:
+                print(f"Échec de l'échange de token: {exc!r}", flush=True)
+                self._html(500, "<h2>Échec, relance le lien depuis Discord.</h2>")
+                return
             Path(TOKEN_FILE).write_text(flow.credentials.to_json(), encoding="utf-8")
             self._html(200, "<h2>Token YouTube régénéré. Tu peux fermer cette page.</h2>")
 
