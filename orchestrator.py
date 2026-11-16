@@ -24,11 +24,15 @@ def setup_logging(logs_dir: str) -> None:
     )
 
 
-def alert(webhook_url: str | None, message: str) -> None:
+def alert(webhook_url: str | None, message: str, ping_user_id: str | None = None) -> None:
     if not webhook_url:
         return
+    payload = {"content": message}
+    if ping_user_id:
+        payload["content"] = f"<@{ping_user_id}> {message}"
+        payload["allowed_mentions"] = {"users": [ping_user_id]}
     try:
-        requests.post(webhook_url, json={"content": message}, timeout=10)
+        requests.post(webhook_url, json=payload, timeout=10)
     except Exception:
         logging.getLogger(__name__).exception("Échec de l'envoi de l'alerte webhook")
 
@@ -128,6 +132,7 @@ def run(config: dict, dry_run: bool) -> None:
                     webhook_url,
                     f"[shorts:{config['theme']}] Token YouTube expiré, reclique ici pour le renouveler :\n"
                     f"https://{host}/start?key={secret}",
+                    ping_user_id=os.environ.get("DISCORD_PING_USER_ID"),
                 )
             else:
                 alert(webhook_url, f"[shorts:{config['theme']}] Token YouTube expiré (serveur de réauth non configuré)")
