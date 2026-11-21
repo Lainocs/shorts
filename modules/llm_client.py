@@ -14,6 +14,8 @@ def generate_json(prompt: str, model: str, api_key: str, temperature: float = 0.
         messages=[{"role": "user", "content": prompt}],
         temperature=temperature,
         response_format={"type": "json_object"},
+        max_completion_tokens=8000,
+        extra_body={"reasoning_effort": "low"},
         timeout=timeout,
     )
     raw = response.choices[0].message.content
