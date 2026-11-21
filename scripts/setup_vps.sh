@@ -16,6 +16,12 @@ curl -L -o assets/voices/fr_FR-siwis-medium.onnx \
 curl -L -o assets/voices/fr_FR-siwis-medium.onnx.json \
   https://huggingface.co/rhasspy/piper-voices/resolve/main/fr/fr_FR/siwis/medium/fr_FR-siwis-medium.onnx.json
 
+mkdir -p assets/kokoro
+curl -L -o assets/kokoro/kokoro-v1.0.onnx \
+  https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx
+curl -L -o assets/kokoro/voices-v1.0.bin \
+  https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin
+
 echo ""
 echo "Setup terminé. Étapes suivantes :"
 echo "1. cp .env.example .env, puis renseigner PEXELS_API_KEY et GROQ_API_KEY (et ALERT_WEBHOOK_URL en option)"

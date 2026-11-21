@@ -11,13 +11,22 @@ video:
   resolution: [1080, 1920]
 
 tts:
+  provider: kokoro # kokoro | piper (secours)
+  kokoro_model: assets/kokoro/kokoro-v1.0.onnx
+  kokoro_voices: assets/kokoro/voices-v1.0.bin
+  kokoro_voice: ff_siwis
+  speed: 1.0
   voice_model: assets/voices/fr_FR-siwis-medium.onnx
   voice_config: assets/voices/fr_FR-siwis-medium.onnx.json
 
 subtitles:
-  whisper_model: tiny
+  whisper_model: small
 
 visuals:
+  # Images IA animées (zoom lent), essayées dans l'ordre ; si tout échoue -> clips Pexels.
+  # "cloudflare" demande CLOUDFLARE_ACCOUNT_ID + CLOUDFLARE_API_TOKEN dans .env (gratuit, ~230 images/jour).
+  image_providers: [cloudflare] # pollinations existe aussi mais coupe vite (402)
+  image_segment_seconds: 6
   provider: pexels
   orientation: portrait
 

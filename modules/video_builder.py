@@ -76,3 +76,43 @@ def build_video(clip_paths: list[str], audio_path: str, subtitles_path: str, out
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
         raise RuntimeError(f"ffmpeg a échoué (code {result.returncode}):\n{result.stderr[-4000:]}")
+
+
+def build_video_from_images(image_paths: list[str], audio_path: str, subtitles_path: str, out_path: str,
+                            resolution: tuple[int, int] = (1080, 1920)) -> None:
+    """Une image par plan, avec un zoom lent (alternance avant/arrière), sur toute la durée audio."""
+    width, height = resolution
+    audio_duration = probe_duration(audio_path)
+    count = len(image_paths)
+    seg_duration = audio_duration / count
+    frames = max(2, round(seg_duration * 30))
+
+    filter_parts = []
+    for i in range(count):
+        zoom = f"1+0.18*on/{frames}" if i % 2 == 0 else f"1.18-0.18*on/{frames}"
+        # crop du bas (-8%) : retire d'éventuels filigranes ; pré-échelle x2 pour un zoom sans saccades
+        filter_parts.append(
+            f"[{i}:v]crop=iw:ih*0.92:0:0,scale={width * 2}:{height * 2}:force_original_aspect_ratio=increase,"
+            f"crop={width * 2}:{height * 2},"
+            f"zoompan=z='{zoom}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s={width}x{height}:fps=30,"
+            f"trim=duration={seg_duration:.3f},setpts=PTS-STARTPTS,format=yuv420p[v{i}]"
+        )
+    concat_filter = f"{''.join(f'[v{i}]' for i in range(count))}concat=n={count}:v=1:a=0[concat]"
+    filter_complex = ";".join(filter_parts + [concat_filter, f"[concat]ass={subtitles_path}[outv]"])
+
+    cmd = ["ffmpeg", "-y"]
+    for image in image_paths:
+        cmd += ["-loop", "1", "-framerate", "30", "-t", f"{seg_duration + 0.2:.3f}", "-i", image]
+    cmd += ["-i", audio_path]
+    cmd += [
+        "-filter_complex", filter_complex,
+        "-map", "[outv]", "-map", f"{count}:a",
+        "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-r", "30",
+        "-c:a", "aac", "-b:a", "128k", "-shortest",
+        out_path,
+    ]
+    Path(out_path).parent.mkdir(parents=True, exist_ok=True)
+    logger.info("ffmpeg (images): %d plans de ~%.1fs", count, seg_duration)
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise RuntimeError(f"ffmpeg a échoué (code {result.returncode}):\n{result.stderr[-4000:]}")

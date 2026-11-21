@@ -11,7 +11,7 @@ import requests
 import yaml
 from dotenv import load_dotenv
 
-from modules import script_generator, tts, subtitles, visuals, video_builder, youtube_uploader, state
+from modules import ai_images, script_generator, tts, subtitles, visuals, video_builder, youtube_uploader, state
 
 
 def setup_logging(logs_dir: str) -> None:
@@ -57,40 +57,55 @@ def run(config: dict, dry_run: bool) -> None:
 
         logger.info("[%s] Synthèse audio...", run_id)
         audio_path = str(work_dir / "audio.wav")
-        tts.synthesize(
-            script["script"],
-            config["tts"]["voice_model"],
-            config["tts"]["voice_config"],
-            audio_path,
-        )
+        tts.synthesize(script["script"], config["tts"], audio_path)
 
         logger.info("[%s] Génération des sous-titres...", run_id)
         subtitles_path = str(work_dir / "subtitles.ass")
         subtitles.build_karaoke_subtitles(
-            audio_path, subtitles_path, whisper_model=config["subtitles"]["whisper_model"]
+            audio_path, subtitles_path, whisper_model=config["subtitles"]["whisper_model"],
+            script_text=script["script"],
         )
 
         max_segment_seconds = config["video"].get("max_clip_segment_seconds", 8)
         audio_duration = video_builder.probe_duration(audio_path)
         num_segments = video_builder.compute_num_segments(audio_duration, max_segment_seconds)
 
-        logger.info("[%s] Récupération des visuels (%d clips visés)...", run_id, num_segments)
-        api_key = os.environ["PEXELS_API_KEY"]
-        clip_paths = visuals.fetch_clips(
-            script["visual_keywords"],
-            api_key,
-            str(work_dir / "clips"),
-            orientation=config["visuals"]["orientation"],
-            min_clips=num_segments,
-        )
-
-        logger.info("[%s] Assemblage de la vidéo...", run_id)
         video_path = str(work_dir / "final.mp4")
-        video_builder.build_video(
-            clip_paths, audio_path, subtitles_path, video_path,
-            resolution=tuple(config["video"]["resolution"]),
-            max_segment_seconds=max_segment_seconds,
-        )
+        resolution = tuple(config["video"]["resolution"])
+        visuals_cfg = config["visuals"]
+        image_paths = []
+
+        if visuals_cfg.get("image_providers"):
+            image_seconds = visuals_cfg.get("image_segment_seconds", 6)
+            num_images = video_builder.compute_num_segments(audio_duration, image_seconds)
+            logger.info("[%s] Génération de %d images IA...", run_id, num_images)
+            try:
+                prompts = ai_images.generate_scene_prompts(
+                    script["script"], num_images, config["llm"]["model"], os.environ["GROQ_API_KEY"]
+                )
+                image_paths = ai_images.fetch_images(prompts, str(work_dir / "images"), visuals_cfg["image_providers"])
+            except Exception:
+                logger.exception("[%s] Images IA indisponibles, repli sur Pexels", run_id)
+            if not image_paths:
+                logger.warning("[%s] Aucune image IA, repli sur Pexels", run_id)
+
+        if image_paths:
+            logger.info("[%s] Assemblage de la vidéo (images IA)...", run_id)
+            video_builder.build_video_from_images(image_paths, audio_path, subtitles_path, video_path, resolution=resolution)
+        else:
+            logger.info("[%s] Récupération des visuels Pexels (%d clips visés)...", run_id, num_segments)
+            clip_paths = visuals.fetch_clips(
+                script["visual_keywords"],
+                os.environ["PEXELS_API_KEY"],
+                str(work_dir / "clips"),
+                orientation=visuals_cfg["orientation"],
+                min_clips=num_segments,
+            )
+            logger.info("[%s] Assemblage de la vidéo (Pexels)...", run_id)
+            video_builder.build_video(
+                clip_paths, audio_path, subtitles_path, video_path,
+                resolution=resolution, max_segment_seconds=max_segment_seconds,
+            )
 
         if dry_run:
             logger.info("[%s] DRY RUN - vidéo générée sans upload: %s", run_id, video_path)
