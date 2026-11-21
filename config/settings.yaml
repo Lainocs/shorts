@@ -16,6 +16,7 @@ tts:
   kokoro_voices: assets/kokoro/voices-v1.0.bin
   kokoro_voice: ff_siwis
   speed: 1.0
+  expressive: false # intonations par phrase : testé, jugé moins bon que la voix plate
   voice_model: assets/voices/fr_FR-siwis-medium.onnx
   voice_config: assets/voices/fr_FR-siwis-medium.onnx.json
 
