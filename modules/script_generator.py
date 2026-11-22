@@ -16,10 +16,13 @@ SIMILARITY_THRESHOLD = 0.75
 # (nom, poids, kind attendu, directive de sujet)
 CATEGORIES = [
     ("policier_resolu", 17, "verifie",
-     "Le sujet DOIT être une affaire policière ou un crime RÉSOLU (raconte comment ça a abouti)."),
+     "Le sujet DOIT être une affaire criminelle RÉELLE, documentée et résolue (jamais inventée), "
+     "et raconter comment elle a été élucidée. Si tu n'es pas certain qu'elle existe vraiment, choisis-en une autre. "
+     "Désigne l'affaire par son nom d'usage, sans nom de famille de victime ou de proche."),
     ("policier_non_resolu", 19, "non_confirme",
-     "Le sujet DOIT être une affaire ou disparition NON RÉSOLUE, un vrai mystère sans réponse. "
-     'Précise l\'issue connue et signale l\'incertitude ("on ignore", "le mystère reste entier").'),
+     "Le sujet DOIT être une affaire ou disparition RÉELLE et documentée, restée NON RÉSOLUE (jamais inventée). "
+     "Si tu n'es pas certain qu'elle existe vraiment, choisis-en une autre. Désigne l'affaire par son nom d'usage, "
+     'sans nom de famille de victime. Signale l\'incertitude ("on ignore", "le mystère reste entier").'),
     ("horreur_fiction", 17, "fiction",
      "Le sujet DOIT être une légende urbaine ou un récit d'horreur (thread horreur, backrooms, lieu hanté, "
      "créature, objet maudit). Présente-le clairement comme une légende, jamais comme un fait réel."),
@@ -73,6 +76,15 @@ SETTINGS = [
     "dans un immeuble de banlieue", "dans un village de montagne", "dans une forêt de Pologne", "au Brésil",
     "dans un métro de nuit", "dans un hôtel en pleine saison creuse", "en Islande", "dans une ferme isolée",
 ]
+
+
+ERAS = ["XIXe siècle", "années 1920", "années 1950", "années 1970", "années 1980", "années 1990",
+        "années 2000", "années 2010"]
+COUNTRIES = ["France", "États-Unis", "Royaume-Uni", "Japon", "Allemagne", "Italie", "Canada", "Australie",
+             "Brésil", "Espagne", "Suède", "Mexique", "Corée du Sud", "Inde", "Russie", "Belgique", "Pologne"]
+CLUES = ["une trace ADN", "une empreinte", "une caméra de surveillance", "un témoin inattendu",
+         "une erreur du coupable", "un appel téléphonique", "un objet banal", "un alibi qui s'effondre",
+         "une photo", "un animal", "une lettre anonyme", "un détail de météo", "un aveu", "une technique nouvelle"]
 
 
 def _pick_category() -> tuple[str, str, str]:
@@ -139,6 +151,11 @@ def generate_script(config: dict, db_path: str, max_attempts: int = 5) -> dict:
     category_name, expected_kind, category_directive = _pick_category()
     format_name, min_words, max_words, format_directive = _pick_format()
     hook_directive = random.choice(HOOKS)
+    if category_name in ("policier_resolu", "policier_non_resolu"):
+        # le tirage en code évite que le modèle retombe toujours sur la même histoire
+        category_directive += f" Choisis une affaire survenue en {random.choice(COUNTRIES)}, vers les {random.choice(ERAS)}."
+        if category_name == "policier_resolu":
+            category_directive += f" Le tournant de l'enquête doit être : {random.choice(CLUES)}."
     if expected_kind == "fiction":  # fiction uniquement : imposer un lieu réel à un fait vrai le ferait inventer
         category_directive += f" Situe l'histoire {random.choice(SETTINGS)} (évite les Vosges et les chapelles)."
     logger.info("Catégorie tirée au sort : %s | forme : %s (%d-%d mots)", category_name, format_name, min_words, max_words)
