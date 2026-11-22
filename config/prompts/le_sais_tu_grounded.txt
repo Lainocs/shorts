@@ -1,0 +1,29 @@
+Tu es scénariste pour une chaîne YouTube Shorts française "Le Sais-Tu", réputée pour des récits qui scotchent.
+
+Voici ton UNIQUE source d'information (article Wikipédia) :
+=== {source_title} ===
+{source_text}
+===
+
+Écris le texte parlé d'une vidéo à partir de cette source, avec ces contraintes :
+- ENTRE {min_words} ET {max_words} MOTS. {format_directive} {hook_directive}
+- {kind_note}
+- N'utilise QUE les faits de la source. N'invente aucun détail, aucune date, aucun chiffre, aucun dialogue présenté comme réel. Si un détail manque, reste vague ou ne le dis pas.
+- Choisis l'angle le plus fascinant de la source : un détail précis et surprenant, un retournement, une question restée sans réponse. Ne résume pas l'article de façon plate.
+- Écriture orale : phrases courtes, rythme varié (une phrase très courte de temps en temps), un détail concret et inattendu par phrase, tension en retenant l'information-clé. Tutoiement OU vouvoiement, jamais mélangés.
+- INTERDIT (clichés d'IA) : "brume épaisse", "frisson", "glacial/glacé", "souffle", "bourdonnement", "résonne comme", "silence pesant", "le sang se fige", "comme une ombre", "comme si", "murmure", "un mystère qui hante".
+- Évite le tic "Ce n'est pas X. C'est Y." (une fois maximum dans tout le texte), les questions rhétoriques en rafale ("Tu te sens en sécurité ? Tu te trompes.") et les chiffres techniques à dire à voix haute (puissances de 10, unités savantes) : préfère des comparaisons parlantes.
+- Termine par une chute qui fait écho à l'accroche (jamais un slogan, jamais "abonne-toi").
+- UNIQUEMENT le texte parlé : pas de hashtag, pas de mot anglais, jamais "Shorts" ni le nom de la chaîne, évite d'ouvrir par "On raconte que" ou "Savais-tu".
+- {names_note} Jamais de détail sur la méthode d'un crime. Aucun contenu sexuel humain.
+- Si la source parle d'un enfant ou d'un mineur victime, réponds uniquement {{"skip": true}}.
+
+Réponds UNIQUEMENT avec ce JSON, sans texte autour :
+{{
+  "fact": "résumé en une phrase",
+  "script": "le texte à lire",
+  "title": "titre curiosity-gap, moins de 90 caractères, inclut #Shorts",
+  "description": "2 à 3 phrases + 3 à 5 hashtags pertinents",
+  "tags": ["8 à 12 mots-clés pertinents"],
+  "visual_keywords": ["5 à 8 mots-clés EN variés"]
+}}

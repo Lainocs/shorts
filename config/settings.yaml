@@ -1,7 +1,8 @@
 theme: le_sais_tu
 
 llm:
-  model: openai/gpt-oss-120b
+  model: openai/gpt-oss-120b # choix des sujets (connaissances)
+  writer_model: qwen/qwen3.8-27b # écriture et relecture des scripts
   temperature: 0.8
 
 video:

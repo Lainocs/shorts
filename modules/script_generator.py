@@ -5,7 +5,7 @@ import random
 import re
 from pathlib import Path
 
-from modules import state
+from modules import grounding, state
 from modules.llm_client import generate_json, generate_text, LLMError
 
 logger = logging.getLogger(__name__)
@@ -92,8 +92,9 @@ def _pick_category() -> tuple[str, str, str]:
     return name, expected_kind, directive
 
 
-def _pick_format() -> tuple[str, int, int, str]:
-    name, _, min_words, max_words, directive = random.choices(FORMATS, weights=[f[1] for f in FORMATS], k=1)[0]
+def _pick_format(exclude: tuple[str, ...] = ()) -> tuple[str, int, int, str]:
+    pool = [f for f in FORMATS if f[0] not in exclude]
+    name, _, min_words, max_words, directive = random.choices(pool, weights=[f[1] for f in pool], k=1)[0]
     return name, min_words, max_words, directive
 
 HASHTAG_RE = re.compile(r"#\w+", re.UNICODE)
@@ -139,7 +140,7 @@ def _expand_script(script_text: str, min_words: int, model: str, api_key: str) -
     return _sanitize_script(expanded)
 
 
-def generate_script(config: dict, db_path: str, max_attempts: int = 5) -> dict:
+def _generate_ungrounded(config: dict, db_path: str, max_attempts: int = 5) -> dict:
     theme = config["theme"]
     llm_cfg = config["llm"]
     template = _load_prompt_template(theme)
@@ -219,3 +220,160 @@ def generate_script(config: dict, db_path: str, max_attempts: int = 5) -> dict:
         return data
 
     raise LLMError(f"Impossible de générer un script valide et non-dupliqué après {max_attempts} tentatives")
+
+
+KIND_NOTES = {
+    "verifie": "Présente les faits comme établis, tels que la source les rapporte.",
+    "non_confirme": "Signale clairement ce qui reste incertain ou inexpliqué (\"on ignore\", \"la version officielle\", \"aucune preuve\").",
+    "fiction": "C'est une légende ou un récit d'horreur : présente-le clairement comme tel, jamais comme un fait réel.",
+}
+YEAR_RE = re.compile(r"\b(1\d{3}|20\d{2})\b")
+SOFT_MIN_RATIO = 0.85
+CANDIDATES_PROMPT = """Propose {n} sujets pour une vidéo courte. Contrainte : {directive}
+Pour chaque sujet, donne le titre EXACT de l'article Wikipédia français correspondant (un article qui existe vraiment et qui est assez détaillé). Choisis des sujets variés et peu rebattus, pas les trois plus célèbres. Évite tout sujet dont la victime est un enfant.
+Sujets déjà traités, à ne pas reproposer :
+{recent}
+Réponds UNIQUEMENT avec ce JSON : {{"candidats": [{{"sujet": "...", "article": "titre exact de l'article"}}]}}"""
+POLISH_PROMPT = """Tu es un éditeur impitoyable. Voici un texte parlé de vidéo courte, et la source dont il est tiré.
+
+SOURCE :
+{source_text}
+
+TEXTE :
+{script}
+
+Améliore-le : accroche plus forte dès la première phrase, supprime tout cliché ("brume épaisse", "frisson", "glacial", "souffle", "comme si"...), remplace le vague par un détail précis tiré de la source, varie le rythme, chute plus marquante. N'ajoute AUCUN fait absent de la source. {names_note} Reste entre {min_words} et {max_words} mots, même ton, même tutoiement ou vouvoiement.
+Réponds UNIQUEMENT avec ce JSON : {{"script": "le texte amélioré"}}"""
+
+
+def _years_supported(script_text: str, source_text: str) -> bool:
+    return all(year in source_text for year in YEAR_RE.findall(script_text))
+
+
+NAMES_NOTES = {
+    True: "N'écris AUCUN nom de personne, ni prénom ni nom de famille : désigne chacun par son rôle, son âge ou son métier (la victime, le suspect, l'enquêteur, la mère).",
+    False: "Aucun nom de famille de personne vivante ou de proche de victime ; les grandes figures historiques peuvent être nommées.",
+}
+
+
+def _write_from_source(template: str, source: tuple[str, str], kind: str, fmt: tuple, hook: str,
+                       model: str, api_key: str, temperature: float, recent_titles: list[str],
+                       no_names: bool = False) -> dict | None:
+    source_title, source_text = source
+    _, min_words, max_words, format_directive = fmt
+    prompt = template.format(
+        source_title=source_title, source_text=source_text, min_words=min_words, max_words=max_words,
+        format_directive=format_directive, hook_directive=hook, kind_note=KIND_NOTES[kind],
+        names_note=NAMES_NOTES[no_names],
+    )
+    data = generate_json(prompt, model=model, api_key=api_key, temperature=temperature)
+    if data.get("skip"):
+        logger.info("Source écartée par le modèle (mineur ou sujet inadapté): %s", source_title)
+        return None
+    if not REQUIRED_KEYS <= data.keys():
+        logger.warning("Clés manquantes dans la sortie: %s", REQUIRED_KEYS - data.keys())
+        return None
+    if _too_similar(data["title"], recent_titles):
+        logger.warning("Titre trop proche d'un titre récent: %s", data["title"])
+        return None
+
+    script_text = _sanitize_script(data["script"])
+    if not script_text.rstrip().endswith((".", "!", "?", "…", "»")):
+        logger.warning("Brouillon coupé en plein milieu (%s), sujet écarté: %s", script_text[-30:], source_title)
+        return None
+    if not _years_supported(script_text, source_text):
+        logger.warning("Date absente de la source dans le brouillon, sujet écarté: %s", source_title)
+        return None
+    if len(script_text.split()) < min_words * SOFT_MIN_RATIO:
+        logger.warning("Brouillon trop court (%d mots) pour %s", len(script_text.split()), source_title)
+        return None
+
+    try:
+        polished = generate_json(
+            POLISH_PROMPT.format(source_text=source_text, script=script_text, min_words=min_words, max_words=max_words,
+                                 names_note=NAMES_NOTES[no_names]),
+            model=model, api_key=api_key, temperature=temperature,
+        )
+        better = _sanitize_script(polished.get("script", ""))
+        if (len(better.split()) >= min_words * SOFT_MIN_RATIO and _years_supported(better, source_text)
+                and better.rstrip().endswith((".", "!", "?", "…", "»"))):
+            script_text = better
+        else:
+            logger.warning("Version relue rejetée (longueur ou date non sourcée), brouillon conservé")
+    except Exception as exc:
+        logger.warning("Relecture échouée (%s), brouillon conservé", str(exc)[:150])
+
+    data["script"] = script_text
+    data["kind"] = kind
+    data["fact"] = f"{source_title} — {data['fact']}"
+    return data
+
+
+def _generate_grounded(config: dict, db_path: str, rounds: int = 2) -> dict | None:
+    llm_cfg = config["llm"]
+    model, api_key = llm_cfg["model"], os.environ["GROQ_API_KEY"]
+    writer_model = llm_cfg.get("writer_model", model)
+    temperature = llm_cfg.get("temperature", 0.8)
+    template = (Path("config/prompts") / f"{config['theme']}_grounded.txt").read_text(encoding="utf-8")
+
+    recent_topics = state.get_recent_topics(db_path, limit=50)
+    recent_titles = [t["title"] for t in recent_topics]
+    recent_text = " ".join(f"{t['title']} {t['fact_summary']}" for t in recent_topics).lower()
+    recent_list = "\n".join(f"- {t['fact_summary']}" for t in recent_topics[:30]) or "(aucun)"
+
+    category_name, kind, directive = _pick_category()
+    if category_name in ("policier_resolu", "policier_non_resolu"):
+        directive += f" Cherche plutôt en {random.choice(COUNTRIES)} ou vers les {random.choice(ERAS)}."
+    # la 2e personne ("tu te réveilles") est réservée à la fiction et à la science : jamais sur une vraie victime
+    exclude = ("liste",) + (() if category_name in ("horreur_fiction", "science_derangeante") else ("seconde_personne",))
+    fmt = _pick_format(exclude=exclude)
+    hook = random.choice(HOOKS)
+    logger.info("Génération ancrée | catégorie: %s | forme: %s (%d-%d mots)", category_name, fmt[0], fmt[1], fmt[2])
+
+    for _ in range(rounds):
+        candidates = generate_json(
+            CANDIDATES_PROMPT.format(n=8, directive=directive, recent=recent_list),
+            model=model, api_key=api_key, temperature=1.0,
+        ).get("candidats", [])
+        random.shuffle(candidates)
+        for candidate in candidates:
+            article = str(candidate.get("article", "")).strip()
+            if not article or article.lower() in recent_text:
+                continue
+            try:
+                source = grounding.fetch_article(article)
+                if not source or source[0].lower() in recent_text:
+                    continue
+                data = _write_from_source(
+                    template, source, kind, fmt, hook, writer_model, api_key, temperature, recent_titles,
+                    no_names=category_name.startswith("policier"),
+                )
+            except Exception as exc:
+                logger.warning("Candidat %r écarté: %s", article, str(exc)[:150])
+                continue
+            if data:
+                logger.info(
+                    "Script ancré sur %r (%d mots, kind=%s): %s",
+                    source[0], len(data["script"].split()), kind, data["script"],
+                )
+                return data
+    return None
+
+
+def generate_script(config: dict, db_path: str) -> dict:
+    for attempt in range(3):
+        try:
+            data = _generate_grounded(config, db_path)
+            if data:
+                return data
+        except Exception as exc:
+            logger.warning("Génération ancrée en échec (essai %d/3): %s", attempt + 1, str(exc)[:300])
+    # sans source, on n'invente que de la fiction assumée : jamais de faux "faits réels"
+    logger.warning("Repli sur une légende sans source")
+    global _pick_category
+    original = _pick_category
+    _pick_category = lambda: next(("horreur_fiction", c[2], c[3]) for c in CATEGORIES if c[0] == "horreur_fiction")
+    try:
+        return _generate_ungrounded(config, db_path)
+    finally:
+        _pick_category = original

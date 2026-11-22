@@ -7,15 +7,16 @@ class LLMError(RuntimeError):
     pass
 
 
-def generate_json(prompt: str, model: str, api_key: str, temperature: float = 0.6, timeout: int = 60) -> dict:
+def generate_json(prompt: str, model: str, api_key: str, temperature: float = 0.6, timeout: int = 120) -> dict:
     client = Groq(api_key=api_key)
+    extra = {"reasoning_effort": "medium"} if "gpt-oss" in model else {}
     response = client.chat.completions.create(
         model=model,
         messages=[{"role": "user", "content": prompt}],
         temperature=temperature,
         response_format={"type": "json_object"},
-        max_completion_tokens=8000,
-        extra_body={"reasoning_effort": "medium"},
+        max_completion_tokens=4000,
+        extra_body=extra,
         timeout=timeout,
     )
     raw = response.choices[0].message.content
