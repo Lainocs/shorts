@@ -20,3 +20,4 @@ assets/voices/*.onnx.json
 *.wav
 *.mp4
 assets/kokoro/
+assets/whisper-*/

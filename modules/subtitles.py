@@ -26,10 +26,10 @@ _model = None
 def _get_model(model_size: str) -> WhisperModel:
     global _model
     if _model is None:
-        try:  # modèle déjà en cache : pas d'appel réseau (Hugging Face répond parfois 429)
-            _model = WhisperModel(model_size, device="cpu", compute_type="int8", local_files_only=True)
-        except Exception:
-            _model = WhisperModel(model_size, device="cpu", compute_type="int8")
+        # modèle copié dans assets/ : pas de dépendance à Hugging Face (qui renvoie des 429 au VPS)
+        local_dir = Path("assets") / f"whisper-{model_size}"
+        source = str(local_dir) if local_dir.is_dir() else model_size
+        _model = WhisperModel(source, device="cpu", compute_type="int8")
     return _model
 
 
