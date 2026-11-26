@@ -153,6 +153,7 @@ def run(config: dict, dry_run: bool) -> None:
                 alert(webhook_url, f"[shorts:{config['theme']}] Token YouTube expiré (serveur de réauth non configuré)")
         else:
             alert(webhook_url, f"[shorts:{config['theme']}] Run {run_id} a échoué: {exc}")
+        shutil.rmtree(work_dir, ignore_errors=True)
         raise
 
 
